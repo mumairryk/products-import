@@ -2,23 +2,22 @@
 
 namespace App\Imports;
 
-use App\Models\Products;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\WithValidation;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-class ImportProductsSample implements ToModel, WithValidation, WithHeadingRow
+class ImportProductsSample implements ToCollection, WithHeadingRow
 {
-    use Importable;
-    public function model(array $row)
+    /**
+     * @param Collection $collection
+     */
+    public function collection(Collection $collection)
     {
-        return new Products($row);
+        //
     }
-    public function rules(): array
+    public function array($row)
     {
         return [
-            'name' => 'required',
-            'code'=>'required'
+            'at' => $row['at_field'],
         ];
     }
 }

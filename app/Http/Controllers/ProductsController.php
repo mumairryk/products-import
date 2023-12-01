@@ -37,8 +37,46 @@ class ProductsController extends Controller
             $this->validate($request,[
                 'file'=>'required'
             ]);
-            Excel::import(new ImportProductsSample(), request()->file('file'));
-            return redirect()->route('products.list')->with('success','Data imported successfully');
+            $errors = [];
+            $imported=0;
+            $data = Excel::toArray(new ImportProductsSample(), request()->file('file'));
+            if (sizeof($data) > 0) {
+                if (sizeof($data[0]) > 0) {
+                    foreach ($data[0] as $index=>$value) {
+                        if (empty($value['name']) || empty($value['code']))
+                        {
+                            $errors[]="Row: " .++$index." is empty product name or code.";
+                        }
+                        else
+                        {
+                            Products::create([
+                                'name'=>$value['name'],
+                                'description'=>$value['description'],
+                                'code'=>$value['code'],
+                                'sku'=>$value['sku'],
+                                'qty'=>$value['qty']
+                            ]);
+                            $imported++;
+                        }
+                    }
+                    if (count($errors)>0)
+                    {
+                        return redirect()->back()->with('errors',$errors);
+                    }
+                    else
+                    {
+                        return redirect()->route('products.list')->with('success',$imported." rows inserted");
+                    }
+                }
+                else
+                {
+                    return redirect()->back()->with('error','No data exist in file');
+                }
+            }
+            else
+            {
+                return redirect()->back()->with('error','No data exist in file');
+            }
         }
         return view('products.import');
     }
